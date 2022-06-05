@@ -1,5 +1,6 @@
 import importlib
 import os
+import sys
 
 from Properties_settings import bci_utility as utility
 
@@ -15,10 +16,11 @@ def read_modules_in_folder(folder_path):
     module_list = []
     for file in os.listdir(folder_path):
         if file.endswith('.py'):
-            module_list.append(importlib.import_module(f'{folder_path}.{file.split(".")[0]}'))
+            module_list.append(importlib.import_module(f'{folder_path.replace("/", ".")}.{file.split(".")[0]}'))
     return module_list
 
-#TODO: Dieser Code Snippet muss noch sinnvoll ausgeführt werden
+
+# TODO: Dieser Code Snippet muss noch sinnvoll ausgeführt werden
 def construct_bci_master_executor(
         parameter_settings_folder=utility.PARAMETER_SETTINGS_FOLDER
 ):
@@ -31,7 +33,7 @@ def construct_bci_master_executor(
     for setting in parameter_settings_list:
         script_corpus += f"# {setting.DATA_SET_NAME} \n" \
                          f"from Properties_settings.Data_settings import {setting.__name__.split('.')[-1]}\n" \
-                         f"from Properties_settings.Network_settings import {setting.NETWORK_SETTINGS}\n"
+                         f"from Properties_settings.Network_settings import {setting.NETWORK_SETTINGS}\n\n"
 
     script_corpus += f"\n"
 

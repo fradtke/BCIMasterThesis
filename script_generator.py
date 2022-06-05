@@ -20,7 +20,6 @@ def read_modules_in_folder(folder_path):
     return module_list
 
 
-# TODO: Dieser Code Snippet muss noch sinnvoll ausgeführt werden
 def construct_bci_master_executor(
         parameter_settings_folder=utility.PARAMETER_SETTINGS_FOLDER
 ):

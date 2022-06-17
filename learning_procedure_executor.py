@@ -36,28 +36,31 @@ class LearningProcedureExecutor:
             data_settings=parameter_settings
         )
 
-        # network_generator.create_simple_cnn_models(
-        #     individual_data=individual_data,
-        #     general_data=grouped_data
-        # )
-        #
+        # Creating the CNN-Models
+        network_generator.create_simple_cnn_models(
+            individual_data=individual_data,
+            general_data=grouped_data
+        )
+
+        # Creating the RNN-Models
         network_generator.create_cnn_rnn_models(
             individual_data=individual_data,
             general_data=grouped_data
         )
 
         # Execute GAN Procedure
-        # augmented_data = network_generator.create_cw_gan_and_artificial_data(
-        #     data=grouped_data[0],
-        #     name=parameter_settings.DATA_SET_NAME,
-        #     gen_sample_number=parameter_settings.NUMBER_OF_SAMPLES_PER_CLASS,
-        #     is_float_64=parameter_settings.IS_FLOAT64
-        # )
+        augmented_data = network_generator.create_cw_gan_and_artificial_data(
+            data=grouped_data[0],
+            name=parameter_settings.DATA_SET_NAME,
+            gen_sample_number=parameter_settings.NUMBER_OF_SAMPLES_PER_CLASS,
+            is_float_64=parameter_settings.IS_FLOAT64
+        )
 
         # Classifier with augmented data
+        network_generator.create_models_with_artificial_data(
+            real_data=grouped_data,
+            artificial_data=augmented_data
+        )
 
-        # network_generator.create_models_with_artificial_data(
-        #     real_data=grouped_data,
-        #     artificial_data=augmented_data
-        # )
-        # network_generator.combine_result_data()
+        # Combining the Result Data of all Networks
+        network_generator.combine_result_data()

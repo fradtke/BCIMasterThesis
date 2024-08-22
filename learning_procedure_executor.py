@@ -7,15 +7,14 @@ from network_generator_manager import NetworkGeneratorManager
 
 class LearningProcedureExecutor:
     def __init__(self):
-        print('I Bims am executoren')
+        print('Initializing of the learning procedure executor')
 
     @staticmethod
     def conduct_network_learning_procedure_for_data_sample(
             parameter_settings,
             network_settings
     ):
-        #TODO: Hier muss ich die auskommentierten elemente wieder hinzufügen
-        #TODO: ADD to Settings
+
         if parameter_settings.IS_FLOAT64:
             tf.keras.backend.set_floatx('float64')
         data_prep = DataPreparator(general_data_set_sample_split=parameter_settings.GENERAL_DATA_SET_SAMPLE_SPLIT)

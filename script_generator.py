@@ -4,18 +4,16 @@ import sys
 
 from Properties_settings import bci_utility as utility
 
-
-# TODO: write demonstration execution
 def write_script(script_corpus, script_name_and_path):
     new_file = open(script_name_and_path, 'w')
     new_file.write(script_corpus)
     new_file.close()
 
 
-def read_modules_in_folder(folder_path):
+def read_modules_in_folder(folder_path, file_ending='.py'):
     module_list = []
     for file in os.listdir(folder_path):
-        if file.endswith('.py'):
+        if file.endswith(file_ending):
             module_list.append(importlib.import_module(f'{folder_path.replace("/", ".")}.{file.split(".")[0]}'))
     return module_list
 
@@ -61,8 +59,6 @@ def write_data_settings_file(
         data_set_name,
         general_data_set_sample_split,
         data_folder_path,
-        # train_data_folder,
-        # validation_data_folder,
         data_read_method,
         expand_dimensions,
         number_of_classes,
@@ -115,7 +111,9 @@ def write_network_settings_file(
         hyperband_iterations,
         hyperband_trainings_epochs,
         hyperband_tuner_epochs,
+        hyperband_tuner_fit_epochs,
         hyperband_tuner_validation_split,
+        hyperband_tuner_trainings_split,
         cnn_filters_layer_1,
         cnn_kernels_layer_1,
         cnn_first_layers_lower_limit,
@@ -171,7 +169,9 @@ def write_network_settings_file(
                     f"HYPERBAND_ITERATIONS = {hyperband_iterations}\n\n" \
                     f"HYPERBAND_TRAININGS_EPOCHS = {hyperband_trainings_epochs}\n" \
                     f"HYPERBAND_TUNER_EPOCHS = {hyperband_tuner_epochs}\n" \
+                    f"HYPERBAND_TUNER_FIT_EPOCHS = {hyperband_tuner_fit_epochs}\n" \
                     f"HYPERBAND_TUNER_VALIDATION_SPLIT = {hyperband_tuner_validation_split}\n\n" \
+                    f"HYPERBAND_TUNER_TRAININGS_SPLIT = {hyperband_tuner_trainings_split}\n\n" \
                     f"# Classifier CNN Settings\n" \
                     f"CNN_FILTERS_LAYER_1 = {cnn_filters_layer_1}\n" \
                     f"CNN_KERNELS_LAYER_1 = {cnn_kernels_layer_1}\n\n" \
@@ -247,12 +247,15 @@ def update_data_reader_functions(
 
 
 def create_data_settings_and_update_executor_and_read(
-        data_set_name, general_data_set_sample_split, data_folder_path, train_data_folder, validation_data_folder,
-        data_read_method, expand_dimensions, number_of_classes, batch_size, eeg_channel_number, eeg_time_steps,
-        latent_dimensions, buffer_size, number_of_samples_per_class, network_settings, file_naming):
+        data_set_name, general_data_set_sample_split, data_folder_path, data_read_method, expand_dimensions,
+        number_of_classes, batch_size, eeg_channel_number, eeg_time_steps, latent_dimensions, buffer_size,
+        number_of_samples_per_class, network_settings, file_naming, is_float64=False, data_specific_values=None
+):
+
     write_data_settings_file(
-        data_set_name, general_data_set_sample_split, data_folder_path, train_data_folder, validation_data_folder,
-        data_read_method, expand_dimensions, number_of_classes, batch_size, eeg_channel_number, eeg_time_steps,
-        latent_dimensions, buffer_size, number_of_samples_per_class, network_settings, file_naming)
+        data_set_name, general_data_set_sample_split, data_folder_path, data_read_method, expand_dimensions,
+        number_of_classes, batch_size, eeg_channel_number, eeg_time_steps, latent_dimensions, buffer_size,
+        number_of_samples_per_class, network_settings, file_naming, is_float64, data_specific_values)
+
     update_data_reader_functions()
     construct_bci_master_executor()

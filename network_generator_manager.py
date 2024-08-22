@@ -10,9 +10,9 @@ from classifier_networks import ClassifierGenerator
 from conditional_wasserstein_gan import ConditionalWassersteinGanGenerator
 
 
-def create_store_path(file_path, date_folder, name):
+def create_store_path(file_path, data_folder, name):
     _store_dir = os.path.abspath(
-        os.path.join(os.sep, os.path.dirname(os.path.abspath(file_path)), date_folder, name))
+        os.path.join(os.sep, os.path.dirname(os.path.abspath(file_path)), data_folder, name))
     _store_dir = os.path.normpath(_store_dir)
     os.makedirs(_store_dir)
     return _store_dir
@@ -46,7 +46,7 @@ class NetworkGeneratorManager:
         self.train_history_dict = 'history'
 
         self.classifier_network_generator = ClassifierGenerator(
-            # TODO: Hier noch mal die Settings dateien beide überprüfen
+
             number_of_classes=number_of_classes,
             expand_dimension=expand_dimension,
             network_settings=network_settings
@@ -119,7 +119,6 @@ class NetworkGeneratorManager:
         return individual_models, general_model
 
     def create_cnn_rnn_models(self, individual_data, general_data):
-
         individual_models, general_model = self.classifier_network_generator.create_cnn_rnn_models(
             individual_data=individual_data,
             general_data=general_data,
@@ -171,7 +170,7 @@ class NetworkGeneratorManager:
 
         for ele in data_frame_list:
             _hdf = data_frame_list.get(ele)
-            print(ele)
+            # print(ele)
             if ele.startswith(self.cnn_rnn_name):
                 ann_type = 'cnn_rnn'
             else:
@@ -198,6 +197,6 @@ class NetworkGeneratorManager:
         with open(f'{_store_path}/{self.data_set_name}.json', mode='w') as f:
             _result_values_df.to_json(f)
 
-        print(_result_values_df)
+
 
 

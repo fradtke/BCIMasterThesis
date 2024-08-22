@@ -4,17 +4,9 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import random
 
-from data_preparator import DataPreparator
+"""Based on: https://keras.io/examples/generative/wgan_gp/ (22.08.2024) - DD.MM.YYY"""
+"""Based on: https://github.com/kongyanye/cwgan-gp/blob/master/cwgan_gp.py (22.08.2024) - DD.MM.YYY"""
 
-"""Based on: https://keras.io/examples/generative/wgan_gp/ (15.09.2021) - DD.MM.YYY"""
-"""Based on: https://github.com/kongyanye/cwgan-gp/blob/master/cwgan_gp.py (15.09.2021) - DD.MM.YYY"""
-
-
-# TODO: Bei den Datensätzen darauf achten, dass es sie dann immer als float64 vorhanden sind,
-#  eventuell ist der cast aber nicht notwendig dafür
-# tf.keras.backend.set_floatx('float64')
-
-# TODO: Hier könnten das Skript aufgeteilt werden in: WGAN-Model und WGAN-Generator
 class WGAN(keras.Model):
     def __init__(
             self,
@@ -45,12 +37,10 @@ class WGAN(keras.Model):
     def gradient_penalty(self, batch_size, real_eeg, fake_eeg):
         """ Calculates the gradient penalty.
 
-        This loss is calculated on an interpolated image
+        This loss is calculated on an interpolated eeg signal
         and added to the discriminator loss.
         """
         # Get the interpolated eeg data
-        # TODO: Check if its legit
-        # alpha = tf.random.normal([batch_size, 1, 1], 0.0, 1.0, dtype=tf.float64)
         alpha = tf.random.normal([batch_size, 1, 1], 0.0, 1.0)
         diff = fake_eeg - real_eeg
         interpolated = real_eeg + alpha * diff
@@ -101,8 +91,6 @@ class WGAN(keras.Model):
         for i in range(self.d_steps):
             # Get the latent vector
             # Sample random points in the latent space.
-            # TODO: Check if its legit
-            # random_latent_vectors = tf.random.normal(shape=(batch_size, self.latent_dim), dtype=tf.float64)
             random_latent_vectors = tf.random.normal(shape=(batch_size, self.latent_dim))
             random_vector_labels = tf.concat(
                 [random_latent_vectors, one_hot_labels], axis=-1
@@ -136,12 +124,6 @@ class WGAN(keras.Model):
 
         # Train the generator
         # Get the latent vector
-        # random_latent_vectors = tf.random.normal(shape=(batch_size, self.latent_dim))
-        # TODO: Hier muss ich noch mals überprüfen, wo ich genau die zusammenlegung der Daten eigentlich haben möchte,
-        #  ich glaube nämlich das ich die auf der axis=0 statt auf der letzten haben möchte,
-        #  ich bin mir aber nicht ganz so sicher
-        # TODO: Check if its legit
-        # random_latent_vectors = tf.random.normal(shape=(batch_size, self.latent_dim), dtype=tf.float64)
         random_latent_vectors = tf.random.normal(shape=(batch_size, self.latent_dim))
         random_latent_vector_labels = tf.concat(
             [random_latent_vectors, one_hot_labels], axis=-1
@@ -164,7 +146,6 @@ class WGAN(keras.Model):
         return {"d_loss": d_loss, "g_loss": g_loss}
 
     def generate_eeg_data_sample(self, class_label):
-        # self.generator.load_weights('../cwgan_gp/generator')
         noise = np.random.normal(0, 1, (1, self.latent_dim + self.num_classes))
         generate_eeg_sample = self.generator.predict([noise, np.array(class_label).reshape(-1, 1)])
         return generate_eeg_sample
@@ -182,16 +163,12 @@ class ConditionalWassersteinGanGenerator:
                  buffer_size=1024
                  ):
 
-        # EEG_DATA_SHAPE = (64, 795)
         self.batch_size = batch_size
-        # self.BATCH_SIZE = 512
 
         # Size of the noise vector
         self.eeg_channel_number = eeg_channel_number
 
-        # TODO: Was sollte ich bei der wahl des 'latent space' betrachten,
-        #  ich habe hier jetzt einfach die anzahl der Zeitpunkt in einem Datensample verwendet
-        self.latent_dimensions = latent_dimensions  # Number of tTime steps for one eeg-data sample block
+        self.latent_dimensions = latent_dimensions  # Number of time steps for one eeg-data sample block
         self.num_time_steps = eeg_time_steps
 
         self.num_classes = num_classes
@@ -199,7 +176,6 @@ class ConditionalWassersteinGanGenerator:
         self.buffer_size = buffer_size
         self.network_settings = network_settings
 
-        # TODO: Für die Layer architecture das ganze noch mals angucken
         self.generator_in_channels = self.latent_dimensions + self.num_classes
         self.discriminator_in_channels = self.latent_dimensions + self.num_classes
         print(self.generator_in_channels, self.discriminator_in_channels)
@@ -371,15 +347,10 @@ class ConditionalWassersteinGanGenerator:
             use_bias=False,
             use_bn=True
         )
-        # At this point, we have an output which has the same shape as the input, (32, 32, 1).
-        # We will use a Cropping2D layer to make it (28, 28, 1).
-        # x = layers.Cropping1D((2, 2))(x)  # TODO: Überprüfen ob ich das Cropping benötige oder einfach raus lassen kann
 
         g_model = keras.models.Model(noise, x, name=f'{naming}_generator')
         return g_model
 
-    # g_model = get_generator_model()
-    # g_model.summary()
 
     # Define the loss functions for the discriminator,
     # which should be (fake_loss - real_loss).
@@ -393,9 +364,6 @@ class ConditionalWassersteinGanGenerator:
     def generator_loss(self, fake_eeg):
         return -tf.reduce_mean(fake_eeg)
 
-    # Set the number of epochs for trainining.
-    # epochs = 20
-    # epochs = 1
 
     def generate_cw_gan(self, naming, data_sample, is_float_64, epochs=1):
         d_model = self.get_discriminator_model(naming)
@@ -423,7 +391,7 @@ class ConditionalWassersteinGanGenerator:
 
         _data = data_sample[0]
         _labels = data_sample[1]
-        # TODO: Check if its legit
+
         all_labels = keras.utils.to_categorical(_labels, self.num_classes)
         if is_float_64:
             all_labels = tf.cast(all_labels, dtype=tf.float64)

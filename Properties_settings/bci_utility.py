@@ -14,3 +14,6 @@ NETWORK_SETTINGS_FOLDER = 'Properties_settings/Network_settings'
 
 MAX_POLLING_LAYER = 'max_polling_layer'
 AVERAGE_POLLING_LAYER = 'average_polling_layer'
+
+VAL_LOSS = 'val_loss'
+VAL_ACCURACY = 'val_accuracy'

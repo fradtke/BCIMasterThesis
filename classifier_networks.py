@@ -10,19 +10,12 @@ class ClassifierGenerator:
     def __init__(self,
                  number_of_classes,
                  network_settings,
-                 expand_dimension=-1  # TODO: Das hier muss überprüft werden
+                 expand_dimension=-1
                  ):
-        print('Generating the classifier')
-        # self.trainings_epochs = 150
-        # self.tuner_epochs = 150
-        # self.tuner_validation_split = 0.2
-        # self.expand_dimension = 3
+
         self.trainings_epochs = network_settings.HYPERBAND_TRAININGS_EPOCHS
         self.tuner_epochs = network_settings.HYPERBAND_TUNER_EPOCHS
         self.tuner_validation_split = network_settings.HYPERBAND_TUNER_VALIDATION_SPLIT
-        # TODO: Das hier könnte auch einfach immer die letzte Dimension sein:
-        #  also self.expand_dimension = -1 //
-        #  oder nicht sperat speichern und direkt im Code verwenden, ist aber zu riskant
         self.expand_dimension = expand_dimension
         self.number_of_classes = number_of_classes
         self.network_settings = network_settings
@@ -41,8 +34,6 @@ class ClassifierGenerator:
             )
         ))
         if self.network_settings.CNN_POOLING_LAYER == utility.MAX_POLLING_LAYER:
-            # TODO: ADD here the Option to CHOOSE MaxPoolingLayer / AveragePoolingLayer or None of them
-            # TODO: Add here the Options for the Pooling Layer Parameters
             model.add(keras.layers.MaxPooling1D(
                 pool_size=self.network_settings.CNN_POOLING_SIZE,
                 strides=self.network_settings.CNN_POOLING_STRIDES
@@ -71,8 +62,6 @@ class ClassifierGenerator:
                     default=self.network_settings.CNN_ACTIVATION_FUNCTIONS_DEFAULT
                 )))
             if self.network_settings.CNN_POOLING_LAYER == utility.MAX_POLLING_LAYER:
-                # TODO: ADD here the Option to CHOOSE MaxPoolingLayer / AveragePoolingLayer or None of them
-                # TODO: Add here the Options for the Pooling Layer Parameters
                 model.add(keras.layers.MaxPooling1D(
                     pool_size=self.network_settings.CNN_POOLING_SIZE,
                     strides=self.network_settings.CNN_POOLING_STRIDES
@@ -108,6 +97,7 @@ class ClassifierGenerator:
                 hp.Choice('learning_rate', self.network_settings.CNN_LEARNING_RATE_CHOICE)),
             loss=self.network_settings.CNN_LOSS_FUNCTION,
             metrics=['accuracy'])
+
         return model
 
     def cnn_rnn_model(self, hp):
@@ -126,8 +116,6 @@ class ClassifierGenerator:
             )
         ))
         if self.network_settings.CNN_LSTM_POOLING_LAYER == utility.MAX_POLLING_LAYER:
-            # TODO: ADD here the Option to CHOOSE MaxPoolingLayer / AveragePoolingLayer or None of them
-            # TODO: Add here the Options for the Pooling Layer Parameters
             model.add(keras.layers.TimeDistributed(
                 keras.layers.MaxPooling1D(
                     pool_size=self.network_settings.CNN_LSTM_POOLING_SIZE,
@@ -162,8 +150,6 @@ class ClassifierGenerator:
                 )
             ))
             if self.network_settings.CNN_LSTM_POOLING_LAYER == utility.MAX_POLLING_LAYER:
-                # TODO: ADD here the Option to CHOOSE MaxPoolingLayer / AveragePoolingLayer or None of them
-                # TODO: Add here the Options for the Pooling Layer Parameters
                 model.add(keras.layers.TimeDistributed(
                     keras.layers.MaxPooling1D(
                         pool_size=self.network_settings.CNN_LSTM_POOLING_SIZE,
@@ -210,33 +196,41 @@ class ClassifierGenerator:
         # print(model.summary())
         return model
 
-    def train_the_network(self, model_architecture, store_dir, network_name, trainings_data, trainings_label,
-                          validation_data, validation_label):
+    def train_the_network(self,
+                          model_architecture,
+                          store_dir,
+                          network_name,
+                          trainings_data,
+                          trainings_label,
+                          validation_data,
+                          validation_label
+                          ):
 
         tuner = Hyperband(
-            # self.basic_cnn_model,
             model_architecture,
             objective=self.network_settings.HYPERBAND_OBJECTIVE,
-            # TODO: Hier müsste ich es auch nochmal parametriesieren
             max_epochs=self.network_settings.HYPERBAND_MAX_EPOCHS,
             factor=self.network_settings.HYPERBAND_FACTOR,
             hyperband_iterations=self.network_settings.HYPERBAND_ITERATIONS,
             directory=store_dir,
             project_name=network_name
-
         )
 
         tuner.search(trainings_data, trainings_label,
                      epochs=self.tuner_epochs, validation_split=self.tuner_validation_split,
-                     callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=8)])
+                     callbacks=[keras.callbacks.EarlyStopping(monitor=utility.VAL_LOSS, patience=8)])
 
         best_hyper_parameters = tuner.get_best_hyperparameters()[0]
 
-        # Build the model with the optimal hyperparameters and train it on the data for 50 epochs
+        # Build the model with the optimal hyperparameters and train it on the data
         model = tuner.hypermodel.build(best_hyper_parameters)
-        history = model.fit(trainings_data, trainings_label, epochs=50, validation_split=self.tuner_validation_split)
+        history = model.fit(
+            trainings_data,
+            trainings_label,
+            epochs=self.network_settings.HYPERBAND_TUNER_FIT_EPOCHS,
+            validation_split=self.tuner_validation_split)
 
-        val_acc_per_epoch = history.history['val_accuracy']
+        val_acc_per_epoch = history.history[utility.VAL_ACCURACY]
         best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
         print('Best epoch: %d' % (best_epoch,))
 
@@ -248,7 +242,12 @@ class ClassifierGenerator:
             train_epoch = self.trainings_epochs
 
         # Retrain the model
-        trainings_history = hyper_model.fit(trainings_data, trainings_label, epochs=train_epoch, validation_split=0.2)
+        trainings_history = hyper_model.fit(
+            trainings_data,
+            trainings_label,
+            epochs=train_epoch,
+            validation_split=self.network_settings.HYPERBAND_TUNER_TRAININGS_SPLIT
+        )
 
         eval_result = hyper_model.evaluate(validation_data, validation_label)
         print("[test loss, test accuracy]:", eval_result)
@@ -272,7 +271,6 @@ class ClassifierGenerator:
             train_data = _trainings_data_set[0]
             train_label = _trainings_data_set[1]
             val_data = _validation_data_set[0]
-
             val_label = _validation_data_set[1]
 
             _results[data_sample] = self.train_the_network(network,
@@ -336,8 +334,6 @@ class ClassifierGenerator:
 
     def create_networks_with_aug(self, real_data, artificial_data, store_dir, cnn_name, cnn_rnn_name,
                                  augmentation_identifier):
-        # TODO: The data should be shuffled, or?
-
         # Data preparation
         _con_data = np.concatenate((real_data[0][0], artificial_data[0]))
         _con_label = np.concatenate((real_data[0][1], artificial_data[1]))

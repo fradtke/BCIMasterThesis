@@ -1,7 +1,5 @@
-from scipy.io import loadmat
-
 import numpy as np
-import os
+
 
 import data_reader_functions
 
@@ -17,9 +15,6 @@ class DataPreparator:
         _val_label = []
         for index, data_set in enumerate(data_sample):
             trainings_data_set = data_sample.get(data_set)[0]
-            # Hier findet aktuell der Datensplit statt, mit dem die Einzelnen Versuchspersonen dann aufgetrennt werden
-            # Hier könnte ich dann eine Methode mit übergeben,
-            # die dann vorher vielleicht sogar den Datensatz irgendwie randomieisiert
             if index < self.general_data_split:
                 _train_data.append(trainings_data_set[0])
                 _train_label.append(trainings_data_set[1])
@@ -44,8 +39,6 @@ class DataPreparator:
         # 2. Construct data sample for individual subject
         # 3. Construct the general data sample
         individual_data_set = self.extract_individual_data(
-            # method_name=data_settings.DATA_READ_METHOD,
-            # file_path=data_settings.DATA_FOLDER_PATH,
             data_settings=data_settings
         )
 

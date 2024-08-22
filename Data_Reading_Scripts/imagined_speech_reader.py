@@ -29,7 +29,6 @@ def relabel_values(labels):
     # The imaginary speech is labeled with a binary system,
     # a one in a specific position represents the related label -> one-hot labels
     # (should be just a single one)
-    # print(labels.shape)
     _labels = np.array(np.zeros(labels.shape[0]))
     for trial in range(len(labels)):
         value = 0

@@ -2,9 +2,6 @@
 from learning_procedure_executor import LearningProcedureExecutor 
 
 # Area of settings
-# GIST 
-from Properties_settings.Data_settings import settings_gist_data
-from Properties_settings.Network_settings import network_settings_default
 
 # ISC2020 
 from Properties_settings.Data_settings import settings_imagined_speech_c2020
@@ -13,10 +10,7 @@ from Properties_settings.Network_settings import network_settings_default
 
 # Data area 
 setting_list = [
-    # GIST 
-    (settings_gist_data,
-     network_settings_default),
-    # ISC2020 
+
     (settings_imagined_speech_c2020,
      network_settings_default),
 ]
